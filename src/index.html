@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Imagem para S3</title>
+    <link href="./output.css" rel="stylesheet">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" /> -->
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1042.0.min.js"></script>
+    <script src="./script.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="flex flex-col w-screen h-screen">
+    <section id="header" class="mb-2">
+        <nav class="border-gray-200 bg-gray-900">
+            <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl p-4">
+                <div class="flex gap-10">
+                    <div class="text-center">
+                        <button
+                            class="text-white bg-[#FF9900] hover:bg-[#c97800] focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
+                            type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation"
+                            aria-controls="drawer-navigation">
+                            #
+                        </button>
+                    </div>
+                    <a href="https://github.com/ProjetoIntegradorGP3/AWS-Rekognition" target="_blank"
+                        class="flex items-center space-x-3 rtl:space-x-reverse">
+                        <img src="https://github.com/user-attachments/assets/1a39ec08-3705-4a88-833d-64a57122079c"
+                            class="h-8" alt="AWS Logo" />
+                        <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">
+                            PROJETO REKOGNITION
+                        </span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-6 rtl:space-x-reverse">
+                    <a href="#" class="text-sm  text-white hover:underline">Usuário teste</a>
+                    <img src="https://github.com/user-attachments/assets/ae7dbb69-4591-43a2-87c2-dbc87a7e017a"
+                        class="w-14" alt="">
+                </div>
+            </div>
+        </nav>
+    </section>
+
+    <section>
+        <div id="drawer-navigation"
+            class="fixed top-0 left-0 z-40 w-64 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white dark:bg-gray-800"
+            tabindex="-1" aria-labelledby="drawer-navigation-label">
+            <h5 id="drawer-navigation-label" class="text-base font-semibold text-gray-500 uppercase dark:text-gray-400">
+                Histórico</h5>
+            <button type="button" data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation"
+                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <span class="sr-only">Close menu</span>
+            </button>
+            <div class="py-4 overflow-y-auto">
+                <ul class="space-y-2 font-medium">
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const historyList = document.querySelector('ul.space-y-2');
+                            const history = JSON.parse(localStorage.getItem('uploadHistory')) || [];
+
+                            history.forEach(item => {
+                                const listItem = document.createElement('li');
+                                listItem.textContent = `${item.name} - ${item.date}`;
+                                historyList.appendChild(listItem);
+
+                                const hr = document.createElement('hr');
+                                hr.classList.add('my-2', 'border-gray-300', 'dark:border-gray-600');
+                                historyList.appendChild(hr);
+                            });
+                        });
+                    </script>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="image-uploader" class="flex content-center self-center justify-center h-[80vh] w-screen">
+        <div class="upload-container flex flex-col gap-3 self-center items-center justify-center">
+            <h2>UPLOAD DE IMAGEM</h2>
+            <div class="flex items-center" ondrop="dropHandler(event);"
+                ondragover="dragOverHandler(event);">
+                <label for="imageFile"
+                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-800 bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                        </svg>
+                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to
+                                upload</span> or drag and drop</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                    </div>
+                    <input id="imageFile" type="file" class="invisible" />
+                </label>
+            </div>
+            <div class="flex flex-col gap-1">
+                <button type="button" onclick="uploadImage()"
+                    class="font-bold dark:text-gray-900 dark:bg-white border dark:border-gray-300 focus:outline-none dark:hover:bg-gray-100 dark:focus:ring-4 dark:focus:ring-gray-100 rounded-lg text-sm px-5 py-2.5 me-2 mb-2 bg-gray-800 text-white border-gray-600 hover:bg-gray-700 hover:border-gray-600 focus:ring-gray-700">
+                    Enviar para S3
+                </button>
+                <div class="status text-xs" id="status"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="footer" class="absolute bottom-0 w-screen">
+        <footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800">
+            <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
+                <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2024 <a
+                        href="https://flowbite.com/" class="hover:underline">Grupo Integrador 3™</a>. Todos os direitos
+                    reservados.
+                </span>
+                <ul
+                    class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
+                    <li>
+                        <a href="https://github.com/ProjetoIntegradorGP3/AWS-Rekognition" target="_blank"
+                            class="hover:underline me-4 md:me-6">Sobre o projeto</a>
+                    </li>
+                    <li>
+                        <a href="#" class="hover:underline me-4 md:me-6">Como funciona</a>
+                    </li>
+                    <li>
+                        <a href="#" class="hover:underline">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </footer>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+</body>
+
+</html>
